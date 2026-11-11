@@ -13,6 +13,46 @@ This document explains **how everything works** and **how to install and run it*
 
 ---
 
+## Quick start — after you clone from GitHub
+
+```bash
+git clone https://github.com/jp-999/dev-team.git
+cd dev-team
+```
+
+Then pick how you want to run the team:
+
+**Cursor** — open the folder in Cursor and just ask it to build something (*"Build a URL
+shortener with a web UI"*). The rules in `.cursor/rules/` and `AGENTS.md` load automatically;
+nothing to install.
+
+**Claude Code** — two ways:
+- *Inside this repo:* open the folder in Claude Code. The subagents in `.claude/agents/` and the
+  `/devteam` command load automatically — run `/devteam build a URL shortener`.
+- *From any project (connect it user‑wide, do this once):*
+  ```bash
+  python3 scripts/sync_harnesses.py --user
+  ```
+  This copies the 7 role subagents, the skills, and the `/devteam` command into `~/.claude/`
+  (the command is written with *your* clone's absolute path, so it works from anywhere). Start a
+  **new** Claude Code session, type `/agents` to see the team, or run `/devteam …`. You can also
+  just say *"use the reviewer subagent on these changes"* — roles dispatch via the Task tool.
+
+**CrewAI (autonomous engine)** — needs Python 3.10–3.13 and an LLM API key:
+```bash
+# macOS/Homebrew example; any Python 3.10–3.13 works
+/opt/homebrew/bin/python3.13 -m venv crew/.venv
+cd crew && ./.venv/bin/python -m pip install -e . && cp .env.example .env   # then add your key
+./.venv/bin/python -m devteam.main "Build a URL shortener"
+```
+
+**Office view (optional, zero‑install):** `cd office && python3 -m http.server 8011`, then open
+http://localhost:8011/.
+
+Detailed instructions for each are below.
+
+---
+
 ## 1. The idea in one picture
 
 There is **one source of truth** — the role definitions in [`agents/`](agents/) — and three
@@ -137,7 +177,8 @@ reads `AGENTS.md`, acts as the orchestrator, and applies the per-role rules in
 `.cursor/rules/` as it moves through the pipeline, coordinating via `.devteam/`.
 
 ### 5.2 Claude Code
-From this folder:
+
+**A) Inside this repo.** Open the folder in Claude Code and run:
 
 ```
 /devteam Build a URL shortener with a web UI
@@ -145,6 +186,32 @@ From this folder:
 
 The orchestrator delegates each phase to the matching subagent in `.claude/agents/` via the
 Task tool. (Or just describe the task and it will act as the orchestrator per `CLAUDE.md`.)
+
+**B) Connect the whole team to Claude Code user‑wide (use it in any project).** Run once:
+
+```bash
+python3 scripts/sync_harnesses.py --user
+```
+
+This installs, into `~/.claude/` (your logged‑in Claude Code, available everywhere):
+
+- **7 role subagents** → `~/.claude/agents/` — `orchestrator-pm`, `architect`, `designer`,
+  `developer`, `reviewer`, `qa`, `integrator`.
+- **`/devteam` command** → `~/.claude/commands/devteam.md` — written with this clone's absolute
+  path, so it runs the pipeline from any directory.
+- **Skills** → `~/.claude/skills/` — adds `ponytail`, `karpathy-coding-guidelines`,
+  `systematic-debugging` (any skill you already have, e.g. `graphify`, is left untouched).
+
+Then:
+
+- Start a **new** Claude Code session so it picks up the user‑level agents.
+- Type `/agents` to see the team listed, or run `/devteam build a URL shortener`.
+- Or ask directly: *"use the reviewer subagent on these changes"* — roles dispatch via the Task tool.
+- **Repeatable:** re‑run `python3 scripts/sync_harnesses.py --user` any time you edit a role in
+  `agents/` to refresh the user‑level copies.
+
+> Same‑named project‑level agents take precedence inside this repo, so behavior is identical
+> whether you're in the repo or elsewhere — no conflicts.
 
 ### 5.3 CrewAI (autonomous)
 
@@ -195,6 +262,7 @@ crew/                   Autonomous CrewAI engine
   .venv/                Python 3.13 virtualenv
 scripts/
   sync_harnesses.py     Regenerates .claude and .cursor from agents/
+                        (add --user to also install into ~/.claude for any project)
 ```
 
 ---
