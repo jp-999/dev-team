@@ -7,56 +7,48 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="dot"></span>
-      <div>
-        <div class="title">AI Dev Team <span class="muted">· Office</span></div>
-        <div class="sub muted">Live assignment view — everyone on the work they're assigned</div>
+  <div class="app">
+    <header class="titlebar">
+      <div class="lights"><span class="l r"></span><span class="l y"></span><span class="l g"></span></div>
+      <div class="logo"><span class="logo-mark"></span> AI DEV TEAM</div>
+      <div class="ver">v0.4.0</div>
+      <button id="autoMode" class="automode on" title="Toggle auto mode (run/pause the floor)">auto mode on</button>
+      <div class="spacer"></div>
+      <div class="tools">
+        <button id="btnStandup" class="tbtn">stand-up</button>
+        <button id="btnCouncil" class="tbtn">convene council</button>
+        <select id="speed" class="tbtn" title="Speed">
+          <option value="1">1×</option>
+          <option value="2" selected>2×</option>
+          <option value="4">4×</option>
+        </select>
+        <select id="teamFilter" class="tbtn" title="Highlight a team">
+          <option value="all">all teams</option>
+          <option value="leadership">Leadership</option>
+          <option value="atlas">Team Atlas</option>
+          <option value="nova">Team Nova</option>
+          <option value="orion">Team Orion</option>
+          <option value="platform">Platform</option>
+        </select>
+        <div class="clock" id="clock">09:00</div>
       </div>
-    </div>
+    </header>
 
-    <div class="board" id="board"><!-- assignment stat chips --></div>
-
-    <div class="clockwrap">
-      <div class="clock" id="clock">09:00</div>
-      <div class="sub muted" id="sprint">Sprint 1</div>
-    </div>
-
-    <div class="controls">
-      <button id="btnPlay" class="btn" title="Pause / resume">Pause</button>
-      <select id="speed" class="btn" title="Simulation speed">
-        <option value="1">1×</option>
-        <option value="2" selected>2×</option>
-        <option value="4">4×</option>
-      </select>
-      <select id="teamFilter" class="btn" title="Highlight a team">
-        <option value="all">All teams</option>
-        <option value="leadership">Leadership</option>
-        <option value="atlas">Team Atlas</option>
-        <option value="nova">Team Nova</option>
-        <option value="orion">Team Orion</option>
-        <option value="platform">Platform</option>
-      </select>
-      <button id="btnStandup" class="btn">Call stand-up</button>
-      <button id="btnCouncil" class="btn btn-accent">Convene council</button>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="stagewrap">
-      <div id="stage"><div id="floor"></div></div>
-      <div class="legend" id="legend"><!-- role color legend --></div>
-    </section>
-
-    <aside class="side">
-      <div class="card" id="inspector"><!-- selected person / room, or roster --></div>
-      <div class="card feedcard">
-        <div class="cardhead"><h3>Activity feed</h3><span class="muted" id="feedCount"></span></div>
-        <ul id="feed" class="feed"></ul>
+    <div class="body">
+      <div class="stage" id="stage">
+        <canvas id="floor"></canvas>
+        <div class="board" id="board"></div>
+        <div class="chip" id="memChip">memory · gpt-4o-mini</div>
       </div>
-    </aside>
-  </main>
+      <aside class="side">
+        <div class="card" id="inspector"></div>
+        <div class="card feedcard">
+          <div class="cardhead"><h3>Activity feed</h3></div>
+          <ul id="feed" class="feed"></ul>
+        </div>
+      </aside>
+    </div>
+  </div>
 
   <script src="data.js"></script>
   <script src="office.js"></script>

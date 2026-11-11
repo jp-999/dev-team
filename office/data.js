@@ -79,22 +79,16 @@ const PEOPLE = [
   { id: "p29", name: "Nadia Haroun",   role: "integrator", team: "platform", years: 6, bio: "Platform/SRE. Deploys, migrations, and rollback safety." },
 ];
 
-/* ---- Floor plan: rooms in a 1200 x 700 coordinate space ---- */
-const ROOMS = [
-  { id: "lobby",      label: "Lobby",                 kind: "common",  x: 20,  y: 20,  w: 200, h: 150 },
-  { id: "cafeteria",  label: "Cafeteria \u00b7 The Hub", kind: "break", x: 20,  y: 185, w: 200, h: 215 },
-  { id: "focus",      label: "Focus Zone",            kind: "common",  x: 20,  y: 415, w: 200, h: 165 },
+/* ---- Character appearance palettes (procedural pixel sprites; no external art) ---- */
+const SKIN_TONES = ["#f2c9a0", "#e7b58c", "#d39b6e", "#b07a4e", "#8d5a34", "#ffd9b3"];
+const HAIR_COLORS = ["#2b2b2b", "#43291a", "#6b4423", "#9a9a9a", "#d7a94f", "#a8432d", "#20233a", "#55381f"];
 
-  { id: "atlas",      label: "Team Atlas",            kind: "pod",     x: 240, y: 20,  w: 300, h: 250 },
-  { id: "nova",       label: "Team Nova",             kind: "pod",     x: 560, y: 20,  w: 300, h: 250 },
-  { id: "orion",      label: "Team Orion",            kind: "pod",     x: 240, y: 290, w: 300, h: 250 },
-  { id: "platform",   label: "Platform Bay",          kind: "pod",     x: 560, y: 290, w: 300, h: 120 },
-  { id: "leadership", label: "Leadership Row",        kind: "pod",     x: 240, y: 560, w: 620, h: 120 },
-
-  { id: "everest",    label: "Conf \u00b7 Everest",     kind: "meeting", x: 880, y: 20,  w: 300, h: 180 },
-  { id: "fuji",       label: "Conf \u00b7 Fuji",        kind: "meeting", x: 880, y: 215, w: 300, h: 150 },
-  { id: "warroom",    label: "War Room \u00b7 Council",  kind: "meeting", x: 880, y: 380, w: 300, h: 200 },
-];
+/* Status words shown above avatars (vibe borrowed from munder-difflin). */
+const STATUS_WORDS = {
+  working: "working", starting: "starting up", awaiting: "awaiting",
+  messaging: "messaging", walking: "walking", meeting: "meeting",
+  break: "break", idle: "idle",
+};
 
 /* ---- Content the sim draws from ---- */
 const FEATURES = [

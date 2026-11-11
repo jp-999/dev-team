@@ -29,6 +29,11 @@ and the CrewAI roles reference them through `AGENTS.md` and the role files.
 - **graphify engine** — `pip install graphifyy && graphify install`. Only needed to actually run
   `graphify`; the pointer skill above degrades gracefully to `Grep`/`Glob` if it's absent.
 
+### Install status (this machine)
+- ✅ **graphify** `0.9.106` installed in `crew/.venv`; `/graphify` skill installed at `~/.claude/skills/graphify`.
+- ✅ **ponytail** plugin registered via `claude` (`ponytail@ponytail`, user scope) — `/ponytail-review`, `/ponytail-audit`, etc.
+- ✅ **superpowers** already enabled as `superpowers@claude-plugins-official` v7.0.0 (the `obra/superpowers` marketplace is also added).
+
 ## How these are installed
 
 Edit a skill here, then run `python3 scripts/sync_harnesses.py`. The sync copies each
