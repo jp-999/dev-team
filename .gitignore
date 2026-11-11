@@ -1,0 +1,22 @@
+# Python
+crew/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Secrets / env
+.env
+crew/.env
+
+# Dev-team runtime blackboard (templates live in workflow/blackboard/)
+.devteam/
+runs/
+
+# CrewAI local storage (memory / embeddings cache)
+crew/.crewai_storage/
+
+# OS / editor
+.DS_Store

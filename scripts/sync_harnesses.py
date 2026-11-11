@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Regenerate harness-specific agent files from the canonical definitions in agents/.
+
+Single source of truth: agents/*.md (Claude Code subagent format + extra metadata).
+This script generates:
+  - .claude/agents/<name>.md   (Claude Code subagents)
+  - .cursor/rules/<nn>-<name>.mdc  (Cursor rules, one per role)
+  - .cursor/rules/00-devteam-orchestrator.mdc  (how Cursor should run the team)
+
+Pure standard library; runs on Python 3.9+.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+AGENTS_DIR = ROOT / "agents"
+CLAUDE_DIR = ROOT / ".claude" / "agents"
+CURSOR_DIR = ROOT / ".cursor" / "rules"
+
+CLAUDE_KEYS = ["name", "description", "tools", "model"]
+
+
+def split_frontmatter(text):
+    """Return (meta_dict, body) from a markdown file with YAML-ish frontmatter."""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, text
+    fm_lines = []
+    i = 1
+    while i < len(lines) and lines[i].strip() != "---":
+        fm_lines.append(lines[i])
+        i += 1
+    body = "\n".join(lines[i + 1:]).lstrip("\n")
+    meta = {}
+    for ln in fm_lines:
+        s = ln.strip()
+        if not s or s.startswith("#") or ":" not in ln:
+            continue
+        key, _, val = ln.partition(":")
+        key, val = key.strip(), val.strip()
+        if val.startswith("[") and val.endswith("]"):
+            inner = val[1:-1].strip()
+            items = [x.strip().strip("\"'") for x in inner.split(",")] if inner else []
+            meta[key] = [x for x in items if x]
+        else:
+            meta[key] = val.strip("\"'")
+    return meta, body
+
+
+def _as_str(v):
+    return ", ".join(v) if isinstance(v, list) else v
+
+
+def to_claude(meta, body):
+    out = ["---"]
+    for k in CLAUDE_KEYS:
+        v = meta.get(k)
+        if not v:
+            continue
+        if k in ("description",):
+            out.append('{}: "{}"'.format(k, _as_str(v).replace('"', "'")))
+        else:
+            out.append("{}: {}".format(k, _as_str(v)))
+    out.append("---")
+    return "\n".join(out) + "\n\n" + body.rstrip() + "\n"
+
+
+def to_cursor(meta, body):
+    desc = _as_str(meta.get("description", "")).replace('"', "'")
+    profile = _as_str(meta.get("profile", meta.get("name", "")))
+    name = _as_str(meta.get("name", ""))
+    head = [
+        "---",
+        'description: "{}"'.format(desc),
+        "globs: ",
+        "alwaysApply: false",
+        "---",
+        "",
+        "# Role: {} (`{}`)".format(profile, name),
+        "",
+        "> Generated from `agents/{}.md`. Do not edit here — edit the canonical file.".format(name),
+        "",
+    ]
+    return "\n".join(head) + body.rstrip() + "\n"
+
+
+ORCHESTRATOR_RULE = """---
+description: "AI dev team orchestration. Use whenever asked to build, implement, design, or fix a feature in this project."
+globs: 
+alwaysApply: false
+---
+
+# AI Dev Team — Orchestrator
+
+When asked to build/implement/design/fix something here, act as **orchestrator-pm**
+(`agents/orchestrator-pm.md`) and follow `workflow/SOP.md`:
+
+1. Seed a `.devteam/` blackboard from `workflow/blackboard/` if absent.
+2. Write `spec.md` + `tasks.yaml`, then advance phase by phase:
+   architect -> designer -> developer -> reviewer -> qa -> integrator -> merge.
+3. For each phase, adopt the matching role in `.cursor/rules/` (or `agents/`),
+   passing only the blackboard files as context.
+4. Enforce the gates; loop review/QA failures back to the developer (max 3 rounds).
+5. Keep `.devteam/state.json` and `.devteam/log.md` current on every handoff.
+6. Stop at the merge gate and report.
+"""
+
+
+def main():
+    if not AGENTS_DIR.is_dir():
+        print("No agents/ directory found at {}".format(AGENTS_DIR), file=sys.stderr)
+        return 1
+    CLAUDE_DIR.mkdir(parents=True, exist_ok=True)
+    CURSOR_DIR.mkdir(parents=True, exist_ok=True)
+
+    written = []
+    role_files = sorted(AGENTS_DIR.glob("*.md"))
+    if not role_files:
+        print("No role files in agents/", file=sys.stderr)
+        return 1
+
+    for path in role_files:
+        meta, body = split_frontmatter(path.read_text(encoding="utf-8"))
+        name = _as_str(meta.get("name") or path.stem)
+        try:
+            order = int(_as_str(meta.get("order", "99")))
+        except (TypeError, ValueError):
+            order = 99
+
+        claude_path = CLAUDE_DIR / "{}.md".format(name)
+        claude_path.write_text(to_claude(meta, body), encoding="utf-8")
+        written.append(claude_path)
+
+        cursor_path = CURSOR_DIR / "{:02d}-{}.mdc".format(order, name)
+        cursor_path.write_text(to_cursor(meta, body), encoding="utf-8")
+        written.append(cursor_path)
+
+    orch_path = CURSOR_DIR / "00-devteam-orchestrator.mdc"
+    orch_path.write_text(ORCHESTRATOR_RULE, encoding="utf-8")
+    written.append(orch_path)
+
+    print("Synced {} role(s) -> {} files".format(len(role_files), len(written)))
+    for p in written:
+        print("  {}".format(p.relative_to(ROOT)))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

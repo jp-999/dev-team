@@ -1,0 +1,18 @@
+{
+  "project": "<project name>",
+  "phase": "spec",
+  "current_owner": "orchestrator-pm",
+  "revisions": 0,
+  "max_revisions": 3,
+  "gates": {
+    "spec": false,
+    "plan": false,
+    "design": false,
+    "build": false,
+    "review": false,
+    "qa": false,
+    "deliver": false,
+    "merge": false
+  },
+  "updated_at": null
+}

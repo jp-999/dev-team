@@ -1,0 +1,19 @@
+---
+description: "AI dev team orchestration. Use whenever asked to build, implement, design, or fix a feature in this project."
+globs: 
+alwaysApply: false
+---
+
+# AI Dev Team — Orchestrator
+
+When asked to build/implement/design/fix something here, act as **orchestrator-pm**
+(`agents/orchestrator-pm.md`) and follow `workflow/SOP.md`:
+
+1. Seed a `.devteam/` blackboard from `workflow/blackboard/` if absent.
+2. Write `spec.md` + `tasks.yaml`, then advance phase by phase:
+   architect -> designer -> developer -> reviewer -> qa -> integrator -> merge.
+3. For each phase, adopt the matching role in `.cursor/rules/` (or `agents/`),
+   passing only the blackboard files as context.
+4. Enforce the gates; loop review/QA failures back to the developer (max 3 rounds).
+5. Keep `.devteam/state.json` and `.devteam/log.md` current on every handoff.
+6. Stop at the merge gate and report.
