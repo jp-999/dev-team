@@ -59,6 +59,12 @@ body {
   position: absolute; left: 10px; bottom: 10px; background: rgba(10,12,15,.8);
   border: 1px solid var(--edge); border-radius: 20px; padding: 4px 11px; font-size: 11px; color: var(--muted);
 }
+.legend { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 3px;
+  background: rgba(10,12,15,.82); border: 1px solid var(--edge); border-radius: 8px; padding: 7px 10px; }
+.legend .li { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); }
+.legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+.approvals { background: #2a2320; color: var(--warn); border: 1px solid #5a4426; border-radius: 6px; padding: 4px 9px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.approvals.zero { background: var(--bar2); color: var(--muted); border-color: var(--edge); }
 
 /* ---- Side ---- */
 .side { border-left: 1px solid #000; background: var(--bar); display: flex; flex-direction: column; min-height: 0; }

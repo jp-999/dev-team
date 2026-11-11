@@ -1,37 +1,44 @@
 # Task plan — owner: orchestrator-pm
 # status: todo | in_progress | done | blocked
 # owner: one of orchestrator-pm | architect | designer | developer | reviewer | qa | integrator
+# key: stable ticket id (DT-###) used across log.md, mailbox.md, and approvals.md for a full trace
 
 project: "<project name>"
 revision: 0
 
 tasks:
   - id: T1
+    key: DT-101
     title: "Write the technical design"
     owner: architect
     depends_on: []
     status: todo
   - id: T2
+    key: DT-102
     title: "Write the UX design"
     owner: designer
     depends_on: []
     status: todo
   - id: T3
+    key: DT-103
     title: "Implement the feature"
     owner: developer
     depends_on: [T1, T2]
     status: todo
   - id: T4
+    key: DT-104
     title: "Review the implementation"
     owner: reviewer
     depends_on: [T3]
     status: todo
   - id: T5
+    key: DT-105
     title: "Test against acceptance criteria"
     owner: qa
     depends_on: [T4]
     status: todo
   - id: T6
+    key: DT-106
     title: "Build, integrate, prepare delivery"
     owner: integrator
     depends_on: [T5]

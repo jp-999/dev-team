@@ -4,9 +4,12 @@
   "current_owner": "orchestrator-pm",
   "revisions": 0,
   "max_revisions": 3,
+  "autonomy": "ask",
+  "ticket_seq": 100,
   "gates": {
     "spec": false,
     "plan": false,
+    "grill": false,
     "design": false,
     "build": false,
     "review": false,
@@ -14,5 +17,10 @@
     "deliver": false,
     "merge": false
   },
+  "approvals": { "pending": [], "resolved": [] },
+  "circuit_breaker": { "state": "ok", "consecutive_failures": 0, "budget_usd": null, "spent_usd": 0 },
+  "memory": ".devteam/memory.md",
+  "mailbox": ".devteam/mailbox.md",
+  "event_log": ".devteam/log.md",
   "updated_at": null
 }
