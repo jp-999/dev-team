@@ -199,7 +199,21 @@ scripts/
 
 ---
 
-## 8. Notes & troubleshooting
+## 8. Office view (local frontend)
+
+A zero-install visual of the team as a living office — **everyone on the work they're assigned**,
+with desks, two conference rooms, a war room (decision council), and a cafeteria. People show
+their current task + progress, talk within and across teams, and gather for stand-ups, reviews,
+and decisions. See [`office/`](office/).
+
+```bash
+cd office && python3 -m http.server 8011    # then open http://localhost:8011/
+# or simply open office/index.html directly
+```
+
+It's a local **simulation** today, structured to later bind to the real `.devteam/` blackboard.
+
+## 9. Notes & troubleshooting
 
 - **"CrewAI won't install on 3.14/3.15"** — expected. Use the 3.13 venv; that's why it exists.
 - **Changing default Python back** — remove the `brew shellenv` line from `~/.zprofile`.
