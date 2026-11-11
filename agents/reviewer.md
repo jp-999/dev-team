@@ -5,6 +5,7 @@ description: "Reviews implemented code for correctness, standards, maintainabili
 goal: "Catch correctness, security, and quality issues before they reach QA."
 model: sonnet
 track: quality
+chapter: quality
 order: 5
 tools: Read, Write, Grep, Glob, Bash
 reads: [spec.md, architecture.md, implementation.md, tasks.yaml]

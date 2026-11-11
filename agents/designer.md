@@ -5,6 +5,7 @@ description: "Owns UX/UI design: user flows, screens, component inventory, and d
 goal: "Turn the spec into a clear, buildable UX and visual design."
 model: sonnet
 track: design
+chapter: design
 order: 3
 tools: Read, Write, Edit, Grep, Glob
 reads: [spec.md, state.json]

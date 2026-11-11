@@ -5,6 +5,7 @@ description: "Use PROACTIVELY at the start of any feature or build. Turns a raw 
 goal: "Turn a raw requirement into a clear, scoped plan and drive the team to a shippable result."
 model: opus
 track: orchestration
+chapter: product
 order: 1
 tools: Read, Write, Edit, Grep, Glob, Bash, Task
 reads: [state.json, log.md]

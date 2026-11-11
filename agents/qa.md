@@ -5,6 +5,7 @@ description: "Plans and runs tests, verifies acceptance criteria, and reports de
 goal: "Prove the implementation meets the acceptance criteria and surface any defects."
 model: sonnet
 track: quality
+chapter: quality
 order: 6
 tools: Read, Write, Edit, Grep, Glob, Bash
 reads: [spec.md, design.md, implementation.md, review.md]

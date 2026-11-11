@@ -5,6 +5,7 @@ description: "Implements features and tasks from the spec, architecture, and des
 goal: "Implement the assigned tasks correctly, following the architecture and design."
 model: sonnet
 track: build
+chapter: engineering
 order: 4
 tools: Read, Write, Edit, Grep, Glob, Bash
 reads: [spec.md, architecture.md, design.md, tasks.yaml, state.json]

@@ -5,6 +5,7 @@ description: "Owns technical/system design: interfaces, data models, module boun
 goal: "Translate the spec into a concrete, implementable technical design."
 model: opus
 track: build
+chapter: architecture
 order: 2
 tools: Read, Write, Edit, Grep, Glob
 reads: [spec.md, state.json]

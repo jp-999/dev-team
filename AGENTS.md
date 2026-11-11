@@ -30,6 +30,14 @@ pipeline in [`workflow/SOP.md`](workflow/SOP.md).
 | 6 | QA / Tester | `agents/qa.md` | Tests + acceptance verification |
 | 7 | DevOps / Integrator | `agents/integrator.md` | Build, integrate, release readiness |
 
+## Org model: squads × chapters
+
+The team is a **matrix**: **squads** (Atlas / Nova / Orion / Platform / Leadership) own delivery
+end-to-end, and **chapters** (Product, Design, Architecture, Engineering, Quality, Platform) group
+each craft across squads to set standards and make discipline-wide decisions. Every role has a
+`chapter:` in its frontmatter; the full roster, leads, and decision flow are in
+[`workflow/blackboard/chapters.md`](workflow/blackboard/chapters.md).
+
 ## How they coordinate
 
 No agent calls another directly. They read and write a shared **blackboard** in a `.devteam/`

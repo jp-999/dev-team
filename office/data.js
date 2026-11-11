@@ -90,6 +90,26 @@ const STATUS_WORDS = {
   break: "break", idle: "idle",
 };
 
+/* ---- Chapters: the craft axis of the squads × chapters matrix ----
+ * Squads (teams) own delivery; chapters group a craft ACROSS squads for standards + decisions.
+ * Chapter leads are the leadership specialists. */
+const ROLE_CHAPTER = {
+  director: "engineering", head_product: "product", pm: "product",
+  head_design: "design", designer: "design",
+  principal_architect: "architecture", architect: "architecture",
+  senior_dev: "engineering", developer: "engineering",
+  reviewer: "quality", qa_lead: "quality", qa: "quality",
+  devops_lead: "platform", integrator: "platform",
+};
+const CHAPTERS = {
+  product:      { label: "Product",      color: "#38bdf8", lead: "p02" },
+  design:       { label: "Design",       color: "#a855f7", lead: "p03" },
+  architecture: { label: "Architecture", color: "#6366f1", lead: "p04" },
+  engineering:  { label: "Engineering",  color: "#2563eb", lead: "p01" },
+  quality:      { label: "Quality",      color: "#22c55e", lead: "p05" },
+  platform:     { label: "Platform",     color: "#f59e0b", lead: "p06" },
+};
+
 /* ---- Content the sim draws from ---- */
 const FEATURES = [
   "Checkout v2", "Billing portal", "Search revamp", "Notifications",

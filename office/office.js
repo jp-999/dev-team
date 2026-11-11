@@ -74,9 +74,9 @@
   // ---------- state ----------
   const S = {
     people: [], byId: {}, wall: null, lights: [], auto: true, speed: 2, simMin: 9 * 60, day: 1, shippedToday: 0,
-    filter: "all", selected: null, selectedKind: null, hover: null, time: 0,
+    filter: "all", chapterFilter: "all", selected: null, selectedKind: null, hover: null, time: 0,
     meetings: [], talks: [], envelopes: [], ticketSeq: 100, approvals: 0,
-    nextStandup: 9 * 60 + 25, nextReview: 9 * 60 + 80, nextDecision: 9 * 60 + 140, lunchDone: false, standupIdx: 0,
+    nextStandup: 9 * 60 + 25, nextReview: 9 * 60 + 80, nextDecision: 9 * 60 + 140, nextChapter: 9 * 60 + 55, lunchDone: false, standupIdx: 0, chapterIdx: 0,
   };
 
   // ---------- content ----------
@@ -128,6 +128,7 @@
           deskX: s.tx * TILE + 2, deskY: s.ty * TILE + 7, x: hx, y: hy, hx: hx, hy: hy,
           path: [], pendingStatus: "working", destLabel: "desk", walking: false, facing: "up", busy: false, bob: 0, phase: rand(0, 6.28),
           skin: SKIN_TONES[idx % SKIN_TONES.length], hair: HAIR_COLORS[idx % HAIR_COLORS.length], hairStyle: idx % 6, shirt: colorOf(person.role), speed: rand(42, 62),
+          chapter: ROLE_CHAPTER[person.role] || "product",
         });
         assignTask(p); S.people.push(p); S.byId[p.id] = p;
       });
@@ -137,7 +138,11 @@
     canvas.addEventListener("mouseleave", () => { S.hover = null; });
     buildLegend(); fit(); renderInspector();
   }
-  function buildLegend() { $("legend").innerHTML = ROOMS_DEF.filter((r) => r.team).map((z) => '<span class="li"><span class="sw" style="background:' + TEAM_COLORS[z.team] + '"></span>' + TEAMS[z.team].name + "</span>").join(""); }
+  function buildLegend() {
+    const squads = ROOMS_DEF.filter((r) => r.team).map((z) => '<span class="li"><span class="sw" style="background:' + TEAM_COLORS[z.team] + '"></span>' + TEAMS[z.team].name + "</span>").join("");
+    const chaps = Object.keys(CHAPTERS).map((k) => '<span class="li"><span class="sw" style="background:' + CHAPTERS[k].color + ';border-radius:50%"></span>' + CHAPTERS[k].label + "</span>").join("");
+    $("legend").innerHTML = '<div class="lgrp">squads · rooms</div>' + squads + '<div class="lgrp">chapters · craft</div>' + chaps;
+  }
 
   // ---------- draw primitives ----------
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -345,11 +350,12 @@
     S.people.forEach(drawDesk);
     S.envelopes.forEach(drawEnvelope);
     const order = S.people.slice().sort((a, b) => a.y - b.y);
-    order.forEach((p) => { if (!(S.filter !== "all" && p.team !== S.filter)) drawPerson(p); });
+    order.forEach((p) => { if (visible(p)) drawPerson(p); });
     drawAmbient();
-    order.forEach((p) => { if (S.filter !== "all" && p.team !== S.filter) return; drawStatusPill(p); });
+    order.forEach((p) => { if (visible(p)) drawStatusPill(p); });
     if (S.hover) drawPortrait(S.hover);
   }
+  function visible(p) { return (S.filter === "all" || p.team === S.filter) && (S.chapterFilter === "all" || p.chapter === S.chapterFilter); }
 
   // ---------- sim ----------
   // BFS pathfinding across walkable tiles so agents walk THROUGH doorways, not walls.
@@ -434,6 +440,7 @@
     else if (kind === "arch") { room = roomById("allhands"); people = S.people.filter((p) => (p.role === "architect" || p.role === "principal_architect") && !p.busy); label = "Architecture sync"; dur = 34; }
     else if (kind === "council") { room = roomById("leadership"); people = S.people.filter((p) => p.team === "leadership" && !p.busy); decision = pick(DECISIONS); label = "Decision council"; dur = 50; }
     else if (kind === "lunch") { room = roomById("cafeteria"); people = shuffle(S.people.filter((p) => !p.busy)).slice(0, randint(4, 7)); label = "Lunch"; dur = 42; }
+    else if (kind === "chapter") { room = roomById("allhands"); people = S.people.filter((p) => p.chapter === teamId && !p.busy); label = (CHAPTERS[teamId] || {}).label + " chapter sync"; dur = 28; }
     if (!room || !people || people.length < 2) return;
     gather(people, room);
     let lines = [];
@@ -460,6 +467,7 @@
     if (S.simMin >= S.nextStandup) { const t = ["atlas", "nova", "orion"]; startMeeting("standup", t[S.standupIdx++ % 3]); S.nextStandup += 70; }
     if (S.simMin >= S.nextReview) { startMeeting(Math.random() < 0.5 ? "design" : "arch"); S.nextReview += 150; }
     if (S.simMin >= S.nextDecision) { startMeeting("council"); S.nextDecision += 260; }
+    if (S.simMin >= S.nextChapter) { const ch = ["product", "design", "architecture", "engineering", "quality", "platform"]; startMeeting("chapter", ch[S.chapterIdx++ % ch.length]); S.nextChapter += 120; }
     if (!S.lunchDone && S.simMin >= 12 * 60 + 30) { startMeeting("lunch"); S.lunchDone = true; }
   }
 
@@ -481,8 +489,8 @@
   function renderPersonInspector(p) {
     $("inspector").innerHTML =
       '<div class="insp-name"><span class="insp-av" style="background:' + colorOf(p.role) + '">' + initials(p.name) + "</span>" + p.name + "</div>" +
-      '<div class="insp-role">' + (ROLES[p.role] || {}).label + " · " + TEAMS[p.team].name + "</div>" +
-      '<div class="insp-row"><span class="tag">' + p.years + " yrs</span><span class=\"tag\">" + seniority(p.years) + "</span><span class=\"tag\">" + statusWord(p) + "</span></div>" +
+      '<div class="insp-role">' + (ROLES[p.role] || {}).label + " · " + TEAMS[p.team].name + " · " + (CHAPTERS[p.chapter] || {}).label + " chapter</div>" +
+      '<div class="insp-row"><span class="tag">' + p.years + " yrs</span><span class=\"tag\">" + seniority(p.years) + "</span><span class=\"tag\" style=\"border-color:" + (CHAPTERS[p.chapter] || {}).color + "\">" + (p.id === (CHAPTERS[p.chapter] || {}).lead ? "chapter lead" : "lead · " + first((S.byId[(CHAPTERS[p.chapter] || {}).lead] || { name: "—" }).name)) + "</span><span class=\"tag\">" + statusWord(p) + "</span></div>" +
       '<div class="insp-task"><div class="lbl">' + p.ticket + " · assigned work</div><div class=\"val\">" + p.task + "</div>" +
       '<div class="insp-bar"><i style="width:' + Math.min(100, p.progress).toFixed(0) + '%"></i></div><div class="insp-role" style="margin-top:6px">' + Math.min(100, p.progress).toFixed(0) + "% complete</div></div>" +
       '<div class="insp-bio">' + p.bio + "</div>";
@@ -524,6 +532,7 @@
     $("autoMode").addEventListener("click", function () { S.auto = !S.auto; this.classList.toggle("on", S.auto); this.classList.toggle("off", !S.auto); this.textContent = S.auto ? "auto mode on" : "auto mode off"; });
     $("speed").addEventListener("change", function () { S.speed = parseFloat(this.value); });
     $("teamFilter").addEventListener("change", function () { S.filter = this.value; });
+    $("chapterFilter").addEventListener("change", function () { S.chapterFilter = this.value; });
     $("btnStandup").addEventListener("click", () => { const t = ["atlas", "nova", "orion"]; startMeeting("standup", t[S.standupIdx++ % 3]); });
     $("btnCouncil").addEventListener("click", () => startMeeting("council"));
     window.addEventListener("resize", fit);
@@ -535,7 +544,7 @@
     if (!last) last = t; const dt = Math.min(0.05, (t - last) / 1000); last = t; S.time += dt;
     if (S.auto) {
       const dm = dt * S.speed * MIN_PER_SEC; S.simMin += dm;
-      if (S.simMin >= 23 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; feed("— Day " + S.day + " begins —", "event"); }
+      if (S.simMin >= 23 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; S.nextChapter = 9 * 60 + 55; feed("— Day " + S.day + " begins —", "event"); }
       advance(dm); maybeConversation(dm); schedule(); updateMeetings(); updateTalks();
     }
     moveTick(dt); render(); domTick(); requestAnimationFrame(loop);

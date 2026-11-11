@@ -25,6 +25,7 @@ of a run.
 | `memory.md` | everyone | Durable project memory ("company brain") — read before, append after |
 | `mailbox.md` | orchestrator-pm (router) | Agent-to-agent messages (no direct calls) |
 | `approvals.md` | orchestrator-pm | Human-in-the-loop approval queue |
+| `chapters.md` | chapter leads | Craft chapters: roster, leads, standards (the matrix) |
 
 ## The pipeline
 
@@ -55,6 +56,19 @@ request → PM ─┬─► Architect ─┐
 ### Feedback loops
 - Reviewer `CHANGES REQUESTED` or QA `FAIL` → back to **developer**; PM increments
   `state.json.revisions`. After 3 rounds on the same task, PM escalates to the human.
+
+## Org model: squads × chapters (matrix)
+
+The team runs on **two axes** so decisions flow both across teams and within a craft:
+
+- **Squads** own delivery end-to-end (Atlas / Nova / Orion / Platform, plus Leadership). A feature
+  flows inside a squad PM → architect → designer → developer → reviewer → qa → integrator.
+- **Chapters** group each craft *across* squads (Product, Design, Architecture, Engineering,
+  Quality, Platform) to set standards and make discipline-wide calls, led by a chapter lead.
+
+Decision flow: **within a chapter** (craft standards; chapter lead decides) · **across squads**
+(feature handoffs via `mailbox.md`) · **cross-cutting/risky** (escalate to the leadership council
+via `approvals.md`). Full roster, leads, and standards live in `chapters.md`.
 
 ## Adopted best practices (deep dive: Munder Difflin, CrewAI, OpenHuman, Muse Code, Keystroke, Relevance AI)
 

@@ -5,6 +5,7 @@ description: "Handles build, CI, packaging, and release readiness. Optional role
 goal: "Get the approved, tested change built, integrated, and ready to ship."
 model: sonnet
 track: delivery
+chapter: platform
 order: 7
 tools: Read, Write, Edit, Grep, Glob, Bash
 reads: [spec.md, implementation.md, qa-report.md, state.json]
