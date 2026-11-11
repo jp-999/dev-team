@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = ROOT / "agents"
 CLAUDE_DIR = ROOT / ".claude" / "agents"
 CURSOR_DIR = ROOT / ".cursor" / "rules"
+SKILLS_DIR = ROOT / "skills"
+CLAUDE_SKILLS_DIR = ROOT / ".claude" / "skills"
 
 CLAUDE_KEYS = ["name", "description", "tools", "model"]
 
@@ -141,7 +143,18 @@ def main():
     orch_path.write_text(ORCHESTRATOR_RULE, encoding="utf-8")
     written.append(orch_path)
 
-    print("Synced {} role(s) -> {} files".format(len(role_files), len(written)))
+    # Skills: install canonical skills/<name>/SKILL.md into Claude Code's skills dir.
+    skill_count = 0
+    if SKILLS_DIR.is_dir():
+        for skill in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+            dest_dir = CLAUDE_SKILLS_DIR / skill.parent.name
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / "SKILL.md"
+            dest.write_text(skill.read_text(encoding="utf-8"), encoding="utf-8")
+            written.append(dest)
+            skill_count += 1
+
+    print("Synced {} role(s) + {} skill(s) -> {} files".format(len(role_files), skill_count, len(written)))
     for p in written:
         print("  {}".format(p.relative_to(ROOT)))
     return 0

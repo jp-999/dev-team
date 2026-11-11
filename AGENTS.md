@@ -40,6 +40,14 @@ directory at the root of the project being built (templates in `workflow/blackbo
 The pipeline, phases, gates, and feedback loops are defined in
 [`workflow/SOP.md`](workflow/SOP.md). Read it before acting.
 
+## Skills
+
+Roles pull in reusable skills in [`skills/`](skills/) (installed into `.claude/skills/` by the
+sync script): **ponytail** (minimal change, no over-engineering), **karpathy-coding-guidelines**,
+**systematic-debugging**, and **graphify** (codebase → knowledge graph; needs `pip install graphifyy`).
+The **superpowers** plugin (brainstorming, TDD, verification) is available in Claude Code. See
+[`skills/README.md`](skills/README.md).
+
 ## Orchestration directive (for the active agent)
 
 When the user asks you to build, implement, design, or fix something in this project:
@@ -57,12 +65,13 @@ When the user asks you to build, implement, design, or fix something in this pro
 
 ```
 agents/              Canonical role definitions (source of truth)
+skills/              Reusable skills (ponytail, systematic-debugging, karpathy, graphify)
 workflow/SOP.md      The pipeline every harness follows
 workflow/blackboard/ Templates for the shared coordination files
-.claude/             Generated Claude Code subagents + /devteam command
+.claude/             Generated Claude Code subagents + skills + /devteam command
 .cursor/rules/       Generated Cursor rules (one per role + orchestrator)
 crew/                Autonomous CrewAI engine (loads agents/ at runtime)
-scripts/             sync_harnesses.py — regenerates .claude and .cursor from agents/
+scripts/             sync_harnesses.py — regenerates .claude and .cursor from agents/ + skills/
 ```
 
 > Edit roles in **`agents/`** only, then run `python3 scripts/sync_harnesses.py` to

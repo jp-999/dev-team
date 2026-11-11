@@ -35,6 +35,9 @@ You are the **QA / Tester**. You verify behavior against the spec, independently
 ## Gate
 - Every acceptance criterion has at least one test and all tests pass.
 
+## Skills
+- When a test fails or a defect is hard to pin down, use **systematic-debugging** — reproduce and trace to root cause before reporting.
+
 ## Guardrails
 - Do not modify production code to make tests pass — report the defect instead.
 - A criterion with no test is not "done"; call it out.

@@ -213,7 +213,28 @@ cd office && python3 -m http.server 8011    # then open http://localhost:8011/
 
 It's a local **simulation** today, structured to later bind to the real `.devteam/` blackboard.
 
-## 9. Notes & troubleshooting
+## 9. Skills & external tools
+
+Roles pull in reusable skills, vendored in [`skills/`](skills/) and installed into `.claude/skills/`
+by `scripts/sync_harnesses.py`:
+
+- **ponytail** (minimal change, no over-engineering) — Developer, Architect, Reviewer
+- **systematic-debugging** (root-cause first) — Developer, Reviewer, QA
+- **karpathy-coding-guidelines** (think first, stay surgical) — all build/quality roles
+- **graphify** (codebase → knowledge graph) — Architect, Developer
+
+Referenced, not vendored: **superpowers** ([obra/superpowers](https://github.com/obra/superpowers)),
+the Claude Code skills framework, already present in this machine's plugin cache.
+
+**Optional requirement — only needed to actually run graphify:**
+
+```bash
+pip install graphifyy && graphify install
+```
+
+See [`skills/README.md`](skills/README.md) for the full catalog and per-harness install.
+
+## 10. Notes & troubleshooting
 
 - **"CrewAI won't install on 3.14/3.15"** — expected. Use the 3.13 venv; that's why it exists.
 - **Changing default Python back** — remove the `brew shellenv` line from `~/.zprofile`.
