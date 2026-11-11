@@ -126,7 +126,7 @@
         const hx = s.tx * TILE + 15, hy = s.ty * TILE + 30, idx = PEOPLE.indexOf(person);
         const p = Object.assign({}, person, {
           deskX: s.tx * TILE + 2, deskY: s.ty * TILE + 7, x: hx, y: hy, hx: hx, hy: hy,
-          target: null, pendingStatus: "working", destLabel: "desk", walking: false, facing: "up", busy: false, bob: 0, phase: rand(0, 6.28),
+          path: [], pendingStatus: "working", destLabel: "desk", walking: false, facing: "up", busy: false, bob: 0, phase: rand(0, 6.28),
           skin: SKIN_TONES[idx % SKIN_TONES.length], hair: HAIR_COLORS[idx % HAIR_COLORS.length], hairStyle: idx % 6, shirt: colorOf(person.role), speed: rand(42, 62),
         });
         assignTask(p); S.people.push(p); S.byId[p.id] = p;
@@ -161,7 +161,7 @@
   }
   function drawLights() {
     ctx.save(); ctx.globalCompositeOperation = "lighter";
-    S.lights.forEach((l) => { const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.rad); g.addColorStop(0, "rgba(255,240,208,.14)"); g.addColorStop(1, "rgba(255,240,208,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, l.rad, 0, 7); ctx.fill(); });
+    S.lights.forEach((l) => { const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.rad); g.addColorStop(0, "rgba(255,240,208," + (0.1 + 0.12 * (S.glowBoost || 0)).toFixed(3) + ")"); g.addColorStop(1, "rgba(255,240,208,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, l.rad, 0, 7); ctx.fill(); });
     ctx.restore();
     S.lights.forEach((l) => { r(l.x - 5, l.y - 9, 10, 3, "#fdf3d2"); ctx.fillStyle = "rgba(253,243,210,.5)"; ctx.fillRect(l.x - 6, l.y - 9.5, 12, 4); });
   }
@@ -300,23 +300,92 @@
     ctx.beginPath(); ctx.moveTo(x - 5, y - 3); ctx.lineTo(x, y + 1); ctx.lineTo(x + 5, y - 3); ctx.strokeStyle = "#c9765a"; ctx.stroke();
   }
 
+  function drawAmbient() {
+    const h = S.simMin / 60; let oc = null, oa = 0;
+    if (h < 10) { oc = "255,150,70"; oa = 0.14 * clamp(10 - h, 0, 1); }
+    else if (h < 16) { oa = 0; }
+    else if (h < 19) { oc = "255,138,54"; oa = 0.22 * clamp((h - 16) / 3, 0, 1); }
+    else { oc = "16,24,60"; oa = 0.12 + 0.32 * clamp((h - 19) / 4, 0, 1); }
+    if (oa > 0) { ctx.fillStyle = "rgba(" + oc + "," + oa.toFixed(3) + ")"; ctx.fillRect(0, 0, LOGW, LOGH); }
+    if (S.glowBoost > 0.05) {
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      S.lights.forEach((l) => { const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.rad * 0.75); g.addColorStop(0, "rgba(255,232,186," + (0.16 * S.glowBoost).toFixed(3) + ")"); g.addColorStop(1, "rgba(255,232,186,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, l.rad * 0.75, 0, 7); ctx.fill(); });
+      ctx.restore();
+    }
+  }
+  function bustHair(cx, cy, c, style) {
+    if (style === 3) { r(cx - 12, cy + 2, 3, 7, c); r(cx + 9, cy + 2, 3, 7, c); return; } // balding: side hair only
+    r(cx - 12, cy - 11, 24, 8, c); // cap
+    if (style === 0) { r(cx - 12, cy - 11, 5, 15, c); r(cx + 7, cy - 11, 5, 15, c); }
+    else if (style === 1) { r(cx - 12, cy - 11, 24, 4, c); r(cx - 12, cy - 11, 7, 13, c); }
+    else if (style === 2) { disc(cx, cy - 14, 6, c); }
+    else if (style === 4) { r(cx + 7, cy - 6, 5, 17, c); }
+    else { r(cx - 12, cy - 11, 5, 15, c); r(cx + 7, cy - 11, 5, 15, c); }
+  }
+  function drawPortrait(p) {
+    const w = 66, h = 76, x = clamp(Math.round(p.x) - w / 2, 2, LOGW - w - 2), y = clamp(Math.round(p.y) - h - 26, 2, LOGH - h - 2), col = TEAM_COLORS[p.team] || "#4b5563";
+    ctx.fillStyle = "rgba(0,0,0,.4)"; roundRect(x + 2, y + 3, w, h, 5); ctx.fill();
+    ctx.fillStyle = "#12151b"; roundRect(x, y, w, h, 5); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+    const cx = x + w / 2, hy = y + 22;
+    ctx.fillStyle = p.shirt; roundRect(cx - 16, y + 34, 32, 24, 8); ctx.fill();
+    disc(cx, hy, 12, p.skin);
+    bustHair(cx, hy, p.hair, p.hairStyle);
+    r(cx - 4, hy - 1, 2.4, 2.8, "#222"); r(cx + 1.6, hy - 1, 2.4, 2.8, "#222");
+    r(cx - 2.5, hy + 5, 5, 1.4, "rgba(0,0,0,.3)");
+    ctx.textAlign = "center";
+    ctx.font = "7px ui-sans-serif, sans-serif"; ctx.fillStyle = "#fff"; ctx.fillText(first(p.name), cx, y + h - 20);
+    ctx.font = "5px ui-monospace, monospace"; ctx.fillStyle = col; ctx.fillText((ROLES[p.role] || {}).label || "", cx, y + h - 12);
+    ctx.fillStyle = "#9aa3b2"; ctx.fillText(p.ticket + " · " + statusWord(p), cx, y + h - 5);
+    ctx.textAlign = "left";
+  }
   function render() {
+    const hh = S.simMin / 60; S.glowBoost = clamp((hh - 16) / 5, 0, 1);
     r(0, 0, LOGW, LOGH, "#0b0d10");
     drawFloor(); drawLights(); drawWalls(); drawWallDecor(); drawRoomsFurniture();
     S.people.forEach(drawDesk);
     S.envelopes.forEach(drawEnvelope);
     const order = S.people.slice().sort((a, b) => a.y - b.y);
     order.forEach((p) => { if (!(S.filter !== "all" && p.team !== S.filter)) drawPerson(p); });
+    drawAmbient();
     order.forEach((p) => { if (S.filter !== "all" && p.team !== S.filter) return; drawStatusPill(p); });
-    if (S.hover) pill(Math.round(S.hover.x) - 24, Math.round(S.hover.y) - 46, S.hover.name + " · " + S.hover.ticket, "rgba(10,14,12,.82)", "#eee", 5);
+    if (S.hover) drawPortrait(S.hover);
   }
 
   // ---------- sim ----------
+  // BFS pathfinding across walkable tiles so agents walk THROUGH doorways, not walls.
+  function pathTiles(sx, sy, tx, ty) {
+    if (sx === tx && sy === ty) return [];
+    const key = (x, y) => y * GRID_W + x, prev = new Map(), q = [[sx, sy]];
+    prev.set(key(sx, sy), null);
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    let found = false;
+    while (q.length) {
+      const cur = q.shift();
+      if (cur[0] === tx && cur[1] === ty) { found = true; break; }
+      for (const d of dirs) {
+        const nx = cur[0] + d[0], ny = cur[1] + d[1];
+        if (nx < 0 || ny < 0 || nx >= GRID_W || ny >= GRID_H || isWall(nx, ny)) continue;
+        const k = key(nx, ny); if (prev.has(k)) continue; prev.set(k, cur); q.push([nx, ny]);
+      }
+    }
+    if (!found) return null;
+    const path = []; let c = [tx, ty];
+    while (c) { path.push(c); c = prev.get(key(c[0], c[1])); }
+    path.reverse(); return path.slice(1);
+  }
+  function goTo(p, destPx, pending, label) {
+    const sx = clamp(Math.floor(p.x / TILE), 0, GRID_W - 1), sy = clamp(Math.floor(p.y / TILE), 0, GRID_H - 1);
+    const tx = clamp(Math.floor(destPx.x / TILE), 0, GRID_W - 1), ty = clamp(Math.floor(destPx.y / TILE), 0, GRID_H - 1);
+    const tiles = pathTiles(sx, sy, tx, ty) || [];
+    const pts = tiles.map((t) => ({ x: t[0] * TILE + 8, y: t[1] * TILE + 11 }));
+    pts.push({ x: destPx.x, y: destPx.y });
+    p.path = pts; p.pendingStatus = pending || "working"; if (label) p.destLabel = label;
+  }
   function moveTick(dt) {
     S.people.forEach((p) => {
-      if (p.target) {
-        const dx = p.target.x - p.x, dy = p.target.y - p.y, d = Math.hypot(dx, dy);
-        if (d < 1.3) { p.x = p.target.x; p.y = p.target.y; p.target = null; p.walking = false; p.status = p.pendingStatus || "working"; p.destLabel = "desk"; if (p.status === "starting") p.startTimer = rand(1.5, 3); }
+      if (p.path && p.path.length) {
+        const wp = p.path[0], dx = wp.x - p.x, dy = wp.y - p.y, d = Math.hypot(dx, dy);
+        if (d < 1.3) { p.x = wp.x; p.y = wp.y; p.path.shift(); if (p.path.length === 0) { p.walking = false; p.status = p.pendingStatus || "working"; p.destLabel = "desk"; if (p.status === "starting") p.startTimer = rand(1.5, 3); } }
         else { const sp = Math.min(p.speed * dt, d); p.x += dx / d * sp; p.y += dy / d * sp; p.walking = true; p.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); }
       }
       if (p.startTimer > 0) { p.startTimer -= dt; if (p.startTimer <= 0 && p.status === "starting") p.status = "working"; }
@@ -356,8 +425,8 @@
     for (let i = 0; i < n; i++) { const c = i % cols, rr = Math.floor(i / cols); out.push({ x: x0 + (x1 - x0) * (cols === 1 ? 0.5 : c / (cols - 1)), y: y0 + (y1 - y0) * (rows === 1 ? 0.5 : rr / (rows - 1)) }); }
     return out;
   }
-  function gather(people, rm) { const seats = seatsInRoom(rm, people.length), lbl = rm.label.split(" ")[0]; people.forEach((p, i) => { p.busy = true; p.pendingStatus = "meeting"; p.destLabel = lbl; p.target = { x: seats[i].x, y: seats[i].y }; }); }
-  function disperse(people) { people.forEach((p) => { p.busy = false; p.pendingStatus = "working"; p.destLabel = "desk"; p.target = { x: p.hx, y: p.hy }; }); }
+  function gather(people, rm) { const seats = seatsInRoom(rm, people.length), lbl = rm.label.split(" ")[0]; people.forEach((p, i) => { p.busy = true; goTo(p, { x: seats[i].x, y: seats[i].y }, "meeting", lbl); }); }
+  function disperse(people) { people.forEach((p) => { p.busy = false; goTo(p, { x: p.hx, y: p.hy }, "working", "desk"); }); }
   function startMeeting(kind, teamId) {
     let people, label, dur, decision = null, room;
     if (kind === "standup") { room = roomById(teamId); people = S.people.filter((p) => p.team === teamId && !p.busy); label = TEAMS[teamId].name + " stand-up"; dur = 18; }
@@ -466,7 +535,7 @@
     if (!last) last = t; const dt = Math.min(0.05, (t - last) / 1000); last = t; S.time += dt;
     if (S.auto) {
       const dm = dt * S.speed * MIN_PER_SEC; S.simMin += dm;
-      if (S.simMin >= 18 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; feed("— Day " + S.day + " begins —", "event"); }
+      if (S.simMin >= 23 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; feed("— Day " + S.day + " begins —", "event"); }
       advance(dm); maybeConversation(dm); schedule(); updateMeetings(); updateTalks();
     }
     moveTick(dt); render(); domTick(); requestAnimationFrame(loop);
