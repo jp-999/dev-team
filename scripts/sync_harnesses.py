@@ -110,6 +110,49 @@ When asked to build/implement/design/fix something here, act as **orchestrator-p
 """
 
 
+def install_user():
+    """Install the generated agents, skills, and a /devteam command into ~/.claude (user scope),
+    so Claude Code can use the whole team from any project. Run after the project sync."""
+    home = Path.home() / ".claude"
+    agents_d, skills_d, cmds_d = home / "agents", home / "skills", home / "commands"
+    for d in (agents_d, skills_d, cmds_d):
+        d.mkdir(parents=True, exist_ok=True)
+    out = []
+    for f in sorted(CLAUDE_DIR.glob("*.md")):
+        dest = agents_d / f.name
+        dest.write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+        out.append(dest)
+    if SKILLS_DIR.is_dir():
+        for skill in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+            d = skills_d / skill.parent.name
+            if d.exists():
+                continue  # preserve an already-installed skill (e.g. the graphify engine's)
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "SKILL.md").write_text(skill.read_text(encoding="utf-8"), encoding="utf-8")
+            out.append(d / "SKILL.md")
+    cmd = (
+        "---\n"
+        "description: Run the AI dev team pipeline on a request\n"
+        "argument-hint: [what to build]\n"
+        "---\n"
+        "Act as the **orchestrator-pm** of the AI dev team.\n\n"
+        "Read the operating manual and pipeline first (absolute paths):\n"
+        "- {root}/AGENTS.md\n"
+        "- {root}/workflow/SOP.md\n"
+        "- {root}/workflow/blackboard/chapters.md  (squads x chapters matrix)\n\n"
+        "The roles are installed as subagents (orchestrator-pm, architect, designer, developer, "
+        "reviewer, qa, integrator) — dispatch each phase to the matching one with the Task tool. "
+        "Seed a `.devteam/` blackboard from {root}/workflow/blackboard/ if absent, drive the "
+        "pipeline, enforce the gates, and keep state.json + log.md current.\n\n"
+        "Requirement:\n$ARGUMENTS\n"
+    ).format(root=str(ROOT))
+    (cmds_d / "devteam.md").write_text(cmd, encoding="utf-8")
+    out.append(cmds_d / "devteam.md")
+    print("Installed to {} (user scope):".format(home))
+    for p in out:
+        print("  {}".format(p))
+
+
 def main():
     if not AGENTS_DIR.is_dir():
         print("No agents/ directory found at {}".format(AGENTS_DIR), file=sys.stderr)
@@ -157,6 +200,9 @@ def main():
     print("Synced {} role(s) + {} skill(s) -> {} files".format(len(role_files), skill_count, len(written)))
     for p in written:
         print("  {}".format(p.relative_to(ROOT)))
+
+    if "--user" in sys.argv:
+        install_user()
     return 0
 
 

@@ -12,7 +12,9 @@ an autonomous **CrewAI** engine.
 - **Cursor** — ask the agent to build something; it follows this manual as the
   orchestrator and pulls in the per-role rules from `.cursor/rules/`.
 - **Claude Code** — run `/devteam <what to build>`, or just ask; the orchestrator delegates
-  to the subagents in `.claude/agents/` via the Task tool.
+  to the subagents in `.claude/agents/` via the Task tool. To use the team from **any** project,
+  install it user-wide: `python3 scripts/sync_harnesses.py --user` (copies the roles, skills, and
+  `/devteam` command into `~/.claude/`).
 - **CrewAI (autonomous)** — `cd crew && ./.venv/bin/python -m devteam.main "<what to build>"`.
 
 All three read the **same** role definitions in [`agents/`](agents/) and follow the **same**
