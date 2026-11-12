@@ -29,6 +29,7 @@
           <option value="nova">Team Nova</option>
           <option value="orion">Team Orion</option>
           <option value="platform">Platform</option>
+          <option value="upskilling">Upskilling (L&amp;D)</option>
         </select>
         <select id="chapterFilter" class="tbtn" title="Highlight a chapter (craft across squads)">
           <option value="all">all chapters</option>
@@ -38,7 +39,9 @@
           <option value="engineering">Engineering</option>
           <option value="quality">Quality</option>
           <option value="platform">Platform</option>
+          <option value="enablement">Enablement</option>
         </select>
+        <div class="lnd" id="lnd" title="Upskilling improvements rolled out org-wide">L&amp;D · 0</div>
         <div class="approvals zero" id="approvals">approvals · 0</div>
         <div class="clock" id="clock">09:00</div>
       </div>
@@ -53,6 +56,15 @@
       </div>
       <aside class="side">
         <div class="card" id="inspector"></div>
+        <div class="card chatcard">
+          <div class="cardhead"><h3>Instruct the team</h3><span class="muted" id="queueCount"></span></div>
+          <select id="chatTarget" class="chatsel"></select>
+          <div class="chatrow">
+            <input id="chatInput" class="chatinput" placeholder="Tell them what to build or fix…" />
+            <button id="chatSend" class="chatsend">Send</button>
+          </div>
+          <label class="chatprio"><input type="checkbox" id="chatPriority" /> priority · jump the queue</label>
+        </div>
         <div class="card feedcard">
           <div class="cardhead"><h3>Activity feed</h3></div>
           <ul id="feed" class="feed"></ul>

@@ -15,6 +15,9 @@ crew/.env
 .devteam/
 runs/
 
+# Upskilling (L&D) auto-cycle output (reports + rollout log)
+upskilling/
+
 # CrewAI local storage (memory / embeddings cache)
 crew/.crewai_storage/
 

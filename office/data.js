@@ -9,6 +9,7 @@ const TRACK_COLORS = {
   quality: "#10b981",
   delivery: "#f59e0b",
   leadership: "#334155",
+  enablement: "#14b8a6",
 };
 
 const ROLES = {
@@ -26,6 +27,10 @@ const ROLES = {
   reviewer:            { label: "Code Reviewer",            track: "quality" },
   qa:                  { label: "QA / Tester",             track: "quality" },
   integrator:          { label: "DevOps / Integrator",      track: "delivery" },
+  researcher:          { label: "Researcher",               track: "enablement" },
+  trainer:             { label: "Training Lead",            track: "enablement" },
+  hr:                  { label: "People / HR",              track: "enablement" },
+  compliance:          { label: "Compliance",               track: "enablement" },
 };
 
 /* ---- Teams (each maps to a desk pod on the floor) ---- */
@@ -35,6 +40,7 @@ const TEAMS = {
   nova:       { name: "Team Nova",   pod: "nova" },
   orion:      { name: "Team Orion",  pod: "orion" },
   platform:   { name: "Platform",    pod: "platform" },
+  upskilling: { name: "Upskilling (L&D)", pod: "upskilling" },
 };
 
 /* ---- People: everyone is 3+ years; leads & leadership are more senior ---- */
@@ -77,6 +83,12 @@ const PEOPLE = [
   // Platform
   { id: "p28", name: "Victor Hugo",    role: "integrator", team: "platform", years: 7, bio: "Platform. Owns the build/release pipeline and smoke tests." },
   { id: "p29", name: "Nadia Haroun",   role: "integrator", team: "platform", years: 6, bio: "Platform/SRE. Deploys, migrations, and rollback safety." },
+
+  // Upskilling (L&D) — runs an automatic research + enablement cycle every 12 hours
+  { id: "p30", name: "Iris Bloom",     role: "researcher", team: "upskilling", years: 9,  bio: "Scouts new tools, papers, and practices for the whole org." },
+  { id: "p31", name: "Theo Adler",     role: "trainer",    team: "upskilling", years: 8,  bio: "Turns research into playbooks and runs enablement sessions." },
+  { id: "p32", name: "Nia Powell",     role: "hr",         team: "upskilling", years: 11, bio: "People ops — growth plans, staffing, and team health." },
+  { id: "p33", name: "Sam Ortiz",      role: "compliance", team: "upskilling", years: 10, bio: "Keeps standards, security, and policy current across squads." },
 ];
 
 /* ---- Character appearance palettes (procedural pixel sprites; no external art) ---- */
@@ -100,6 +112,7 @@ const ROLE_CHAPTER = {
   senior_dev: "engineering", developer: "engineering",
   reviewer: "quality", qa_lead: "quality", qa: "quality",
   devops_lead: "platform", integrator: "platform",
+  researcher: "enablement", trainer: "enablement", hr: "enablement", compliance: "enablement",
 };
 const CHAPTERS = {
   product:      { label: "Product",      color: "#38bdf8", lead: "p02" },
@@ -108,6 +121,7 @@ const CHAPTERS = {
   engineering:  { label: "Engineering",  color: "#2563eb", lead: "p01" },
   quality:      { label: "Quality",      color: "#22c55e", lead: "p05" },
   platform:     { label: "Platform",     color: "#f59e0b", lead: "p06" },
+  enablement:   { label: "Enablement",   color: "#14b8a6", lead: "p30" },
 };
 
 /* ---- Content the sim draws from ---- */
@@ -132,6 +146,10 @@ const TASKS_BY_ROLE = {
   principal_architect: ["Reviewing cross-team contracts", "Writing an ADR for {f}", "Assessing {f} scalability", "Standardizing service patterns"],
   qa_lead:             ["Setting the {f} test strategy", "Triaging flaky tests", "Reviewing coverage reports", "Tuning the QA gate"],
   devops_lead:         ["Reviewing the deploy pipeline", "Planning the {f} rollout", "Checking production health", "Running an incident review"],
+  researcher:          ["Scanning papers on {f}", "Benchmarking a new tool", "Summarizing a case study", "Scouting best practices"],
+  trainer:             ["Writing a playbook for {f}", "Prepping an enablement session", "Updating the onboarding guide", "Recording a how-to"],
+  hr:                  ["Reviewing growth plans", "Checking team health", "Planning staffing", "Updating the role ladder"],
+  compliance:          ["Auditing {f} for policy", "Updating the security checklist", "Reviewing licenses", "Checking data handling"],
 };
 
 // Short things people say to each other. {f} = feature, {other} = the other person's first name.
@@ -145,7 +163,31 @@ const SAY = {
   pm:         ["How's {f} tracking for the sprint?", "{other}, any blockers on {f}?", "Scope for {f} is locked — let's ship."],
   integrator: ["{f} release candidate is building now.", "Deploy for {f} smoke-tested clean.", "Holding the release — one check is red."],
   leadership: ["Let's sync on the shared {f} API so we don't duplicate work.", "Great progress on {f} this sprint.", "Bring {f} to the council if it's contentious."],
+  researcher: ["Found a better approach for {f} — sharing notes.", "This could speed up {f}.", "{other}, want the summary on {f}?"],
+  trainer:    ["New playbook for {f} is ready.", "{other}, I'll run a short session on {f}.", "Added {f} to onboarding."],
+  hr:         ["{other}, let's talk growth this sprint.", "Team health looks good.", "Planning capacity for {f}."],
+  compliance: ["{f} needs a policy check before ship.", "Updated the security checklist.", "{other}, the license on {f} is cleared."],
 };
+
+/* Improvements the Upskilling (L&D) team rolls out org-wide each 12h cycle. */
+const UPSKILL_IMPROVEMENTS = [
+  "TDD by default on risky logic",
+  "Faster CI with cached builds",
+  "Refreshed design tokens",
+  "Tighter PR review checklist",
+  "Shared prompt library for agents",
+  "New accessibility baseline",
+  "Incident runbook v2",
+  "Dependency hygiene policy",
+];
+const UPSKILL_FINDINGS = [
+  "benchmarked a new framework — 18% faster builds",
+  "found a paper on better retrieval for agents",
+  "distilled 3 case studies into a playbook",
+  "audited the toolchain for security gaps",
+  "drafted a growth ladder for the squads",
+  "updated the compliance checklist",
+];
 
 const MEETINGS = [
   { id: "standup",  label: "Stand-up",        room: null,      pick: "team" },

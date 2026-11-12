@@ -19,7 +19,7 @@
   const colorOf = (role) => TRACK_COLORS[(ROLES[role] || {}).track] || "#8891a5";
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = randint(0, i);[a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-  const TEAM_COLORS = { leadership: "#64748b", atlas: "#3b82f6", nova: "#a855f7", orion: "#ef7a3b", platform: "#10b981" };
+  const TEAM_COLORS = { leadership: "#64748b", atlas: "#3b82f6", nova: "#a855f7", orion: "#ef7a3b", platform: "#10b981", upskilling: "#14b8a6" };
 
   // Rooms are walled (perimeter walls with carved doorways). (tx,ty,tw,th) = interior floor.
   const ROOMS_DEF = [
@@ -30,7 +30,7 @@
     { id: "orion", team: "orion", kind: "team", label: "TEAM ORION", tx: 28, ty: 12, tw: 27, th: 10 },
     { id: "platform", team: "platform", kind: "team", label: "PLATFORM", tx: 1, ty: 23, tw: 16, th: 12 },
     { id: "cafeteria", kind: "cafeteria", label: "CAFETERIA · THE HUB", tx: 18, ty: 23, tw: 18, th: 12 },
-    { id: "lounge", kind: "lounge", label: "LOUNGE", tx: 37, ty: 23, tw: 18, th: 12 },
+    { id: "upskilling", team: "upskilling", kind: "team", label: "UPSKILLING · L&D", tx: 37, ty: 23, tw: 18, th: 12 },
   ];
   const roomById = (id) => ROOMS_DEF.find((r) => r.id === id);
   const MEETING_ROOM = { standup: null, design: "allhands", arch: "allhands", council: "leadership", lunch: "cafeteria" };
@@ -57,6 +57,10 @@
     integrator: ["cutting a release", "smoke-testing", "updating CI", "rotating secrets", "watching the deploy"],
     devops_lead: ["reviewing the pipeline", "checking prod", "planning rollout"],
     qa_lead: ["setting test strategy", "triaging flaky tests", "reviewing coverage"],
+    researcher: ["scanning papers", "benchmarking a tool", "reading a case study", "scouting practices"],
+    trainer: ["writing a playbook", "prepping a session", "updating onboarding", "recording a how-to"],
+    hr: ["reviewing growth plans", "checking team health", "planning staffing"],
+    compliance: ["auditing for policy", "updating the checklist", "reviewing a license"],
   };
   const fillAct = (t) => t.replace("{file}", pick(FILES)).replace("{f}", pick(FEATURES)).replace("{n}", randint(120, 980));
 
@@ -75,8 +79,9 @@
   const S = {
     people: [], byId: {}, wall: null, lights: [], auto: true, speed: 2, simMin: 9 * 60, day: 1, shippedToday: 0,
     filter: "all", chapterFilter: "all", selected: null, selectedKind: null, hover: null, time: 0,
-    meetings: [], talks: [], envelopes: [], ticketSeq: 100, approvals: 0,
-    nextStandup: 9 * 60 + 25, nextReview: 9 * 60 + 80, nextDecision: 9 * 60 + 140, nextChapter: 9 * 60 + 55, lunchDone: false, standupIdx: 0, chapterIdx: 0,
+    meetings: [], talks: [], envelopes: [], ticketSeq: 100, approvals: 0, skillsAdopted: 0,
+    chatQueue: [], deliverTimer: 0,
+    nextStandup: 9 * 60 + 25, nextReview: 9 * 60 + 80, nextDecision: 9 * 60 + 140, nextChapter: 9 * 60 + 55, nextUpskill: 9 * 60 + 30, lunchDone: false, standupIdx: 0, chapterIdx: 0,
   };
 
   // ---------- content ----------
@@ -136,7 +141,7 @@
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("mousemove", onHover);
     canvas.addEventListener("mouseleave", () => { S.hover = null; });
-    buildLegend(); fit(); renderInspector();
+    buildLegend(); buildChatTargets(); fit(); renderInspector();
   }
   function buildLegend() {
     const squads = ROOMS_DEF.filter((r) => r.team).map((z) => '<span class="li"><span class="sw" style="background:' + TEAM_COLORS[z.team] + '"></span>' + TEAMS[z.team].name + "</span>").join("");
@@ -404,7 +409,11 @@
     S.people.forEach((p) => {
       if (p.busy || p.status === "break" || p.status === "starting") return;
       p.progress += p.rate * dm;
-      if (p.progress >= 100) { feed('<span class="who" style="color:' + colorOf(p.role) + '">' + first(p.name) + "</span> shipped " + p.ticket + ": " + p.task, "ship"); S.shippedToday++; assignTask(p); }
+      if (p.progress >= 100) {
+        if (p.fromUser) { feed('<span class="who" style="color:' + colorOf(p.role) + '">' + first(p.name) + "</span> finished your request: " + p.task, "ship"); p.fromUser = false; }
+        else { feed('<span class="who" style="color:' + colorOf(p.role) + '">' + first(p.name) + "</span> shipped " + p.ticket + ": " + p.task, "ship"); S.shippedToday++; }
+        assignTask(p);
+      }
     });
   }
   const sayLine = (p, other) => fillTask(pick(SAY[p.role] || SAY.leadership)).replace("{other}", first(other));
@@ -441,10 +450,12 @@
     else if (kind === "council") { room = roomById("leadership"); people = S.people.filter((p) => p.team === "leadership" && !p.busy); decision = pick(DECISIONS); label = "Decision council"; dur = 50; }
     else if (kind === "lunch") { room = roomById("cafeteria"); people = shuffle(S.people.filter((p) => !p.busy)).slice(0, randint(4, 7)); label = "Lunch"; dur = 42; }
     else if (kind === "chapter") { room = roomById("allhands"); people = S.people.filter((p) => p.chapter === teamId && !p.busy); label = (CHAPTERS[teamId] || {}).label + " chapter sync"; dur = 28; }
+    else if (kind === "upskill") { room = roomById("upskilling"); people = S.people.filter((p) => p.team === "upskilling" && !p.busy); label = "Upskilling research"; dur = 40; }
     if (!room || !people || people.length < 2) return;
     gather(people, room);
     let lines = [];
     if (kind === "council") { feed("Council convened — " + decision.q, "event"); const sp = shuffle(people.slice()); lines = COUNCIL_LINES.slice(0, Math.min(5, sp.length)).map((t, i) => ({ by: sp[i], text: t })); }
+    else if (kind === "upskill") { feed("Upskilling cycle started — researchers scanning for improvements", "event"); const sp = shuffle(people.slice()); const fnd = shuffle(UPSKILL_FINDINGS.slice()); lines = fnd.slice(0, Math.min(4, sp.length)).map((t, i) => ({ by: sp[i % sp.length], text: t })); }
     else { feed(label + " in " + room.label.toLowerCase() + " (" + people.length + ")", "event"); lines = shuffle(people.slice()).slice(0, 3).map((p) => ({ by: p, text: sayLine(p, pick(people).name) })); }
     if (kind === "lunch") people.forEach((p) => { p.pendingStatus = "break"; });
     S.meetings.push({ kind: kind, label: label, room: room, people: people, decision: decision, lines: lines, nextLine: S.simMin + 4, gap: Math.max(3, dur / (lines.length + 1)), end: S.simMin + dur });
@@ -458,6 +469,11 @@
           feed("Decision: " + outcome + " — consensus " + consensus + "/" + m.people.length + ", confidence " + conf + "% — awaiting human approval", "decision");
           S.approvals++; setTimeout(() => { if (S.approvals > 0) { S.approvals--; feed("Human approved: " + outcome, "event"); } }, randint(6000, 12000));
         }
+        if (m.kind === "upskill") {
+          const imp = pick(UPSKILL_IMPROVEMENTS); S.skillsAdopted++;
+          S.people.forEach((p) => { if (p.team !== "upskilling") p.rate = Math.min(p.rate * 1.04, 3); });
+          feed('Upskilling: "' + imp + '" rolled out to all squads (improvement #' + S.skillsAdopted + ")", "decision");
+        }
         disperse(m.people); return false;
       }
       return true;
@@ -468,6 +484,7 @@
     if (S.simMin >= S.nextReview) { startMeeting(Math.random() < 0.5 ? "design" : "arch"); S.nextReview += 150; }
     if (S.simMin >= S.nextDecision) { startMeeting("council"); S.nextDecision += 260; }
     if (S.simMin >= S.nextChapter) { const ch = ["product", "design", "architecture", "engineering", "quality", "platform"]; startMeeting("chapter", ch[S.chapterIdx++ % ch.length]); S.nextChapter += 120; }
+    if (S.simMin >= S.nextUpskill) { startMeeting("upskill"); S.nextUpskill += 12 * 60; }  // automatic, every 12 sim-hours
     if (!S.lunchDone && S.simMin >= 12 * 60 + 30) { startMeeting("lunch"); S.lunchDone = true; }
   }
 
@@ -480,6 +497,8 @@
     S.people.forEach((p) => { if (p.status === "meeting") meeting++; else if (p.status === "break") {} else if (p.role === "reviewer") review++; else if (p.role === "qa" || p.role === "qa_lead") testing++; else working++; });
     $("board").innerHTML = stat(working, "on task") + stat(review, "review") + stat(testing, "testing") + stat(meeting, "meeting", "warn") + stat(S.shippedToday, "shipped", "ok");
     const ap = $("approvals"); ap.textContent = "approvals · " + S.approvals; ap.classList.toggle("zero", S.approvals === 0);
+    const lnd = $("lnd"); if (lnd) lnd.textContent = "L&D · " + S.skillsAdopted;
+    const qc = $("queueCount"); if (qc) qc.textContent = S.chatQueue.length ? S.chatQueue.length + " queued" : "";
     if (S.selectedKind === "person" && S.byId[S.selected]) renderPersonInspector(S.byId[S.selected]);
   }
   const stat = (n, l, c) => '<div class="stat ' + (c || "") + '"><b>' + n + "</b><span>" + l + "</span></div>";
@@ -528,11 +547,53 @@
   }
   function onHover(e) { const { x, y } = toLogical(e); S.hover = personAt(x, y); canvas.style.cursor = S.hover ? "pointer" : "default"; }
   function selectPerson(id) { S.selected = id; S.selectedKind = "person"; renderInspector(); }
+  // ---------- chat / instructions ----------
+  function buildChatTargets() {
+    let html = '<option value="all">Everyone (whole org)</option>';
+    ["leadership", "atlas", "nova", "orion", "platform", "upskilling"].forEach((t) => { html += '<option value="team:' + t + '">Team · ' + TEAMS[t].name + "</option>"; });
+    S.people.forEach((p) => { html += '<option value="person:' + p.id + '">' + p.name + " · " + (ROLES[p.role] || {}).label + "</option>"; });
+    $("chatTarget").innerHTML = html;
+  }
+  function targetLabel(t) {
+    if (t === "all") return "Everyone";
+    if (t.indexOf("team:") === 0) return "Team " + TEAMS[t.slice(5)].name;
+    if (t.indexOf("person:") === 0) { const p = S.byId[t.slice(7)]; return p ? first(p.name) : "someone"; }
+    return t;
+  }
+  function recipients(t) {
+    if (t === "all") return S.people.slice();
+    if (t.indexOf("team:") === 0) return S.people.filter((p) => p.team === t.slice(5));
+    if (t.indexOf("person:") === 0) { const p = S.byId[t.slice(7)]; return p ? [p] : []; }
+    return [];
+  }
+  function sendChat() {
+    const input = $("chatInput"), text = (input.value || "").trim();
+    if (!text) return;
+    const msg = { target: $("chatTarget").value, text: text, prio: !!($("chatPriority") && $("chatPriority").checked) };
+    if (msg.prio) S.chatQueue.unshift(msg); else S.chatQueue.push(msg);
+    feed('<span class="who">You</span> → ' + targetLabel(msg.target) + ": " + text + ' <span class="ts">[queued]</span>');
+    input.value = "";
+  }
+  function deliverChat(dt) {
+    S.deliverTimer -= dt;
+    if (S.deliverTimer > 0 || S.chatQueue.length === 0) return;
+    S.deliverTimer = 1.2;
+    const msg = S.chatQueue.shift(), recips = recipients(msg.target);
+    recips.forEach((p) => {
+      p.fromUser = true; p.task = msg.text; p.ticket = "DT-" + (++S.ticketSeq);
+      p.progress = rand(1, 6); p.status = "starting"; p.startTimer = rand(1, 2); p.activity = "on your request";
+      S.envelopes.push({ sx: LOGW / 2, sy: 2 * TILE, tx: p.x, ty: p.y - 16, t: 0, dur: 1.2 });
+    });
+    feed('<span class="who">You</span> → ' + targetLabel(msg.target) + " (" + recips.length + ") — delivered: " + msg.text, "event");
+  }
+
   function wireControls() {
     $("autoMode").addEventListener("click", function () { S.auto = !S.auto; this.classList.toggle("on", S.auto); this.classList.toggle("off", !S.auto); this.textContent = S.auto ? "auto mode on" : "auto mode off"; });
     $("speed").addEventListener("change", function () { S.speed = parseFloat(this.value); });
     $("teamFilter").addEventListener("change", function () { S.filter = this.value; });
     $("chapterFilter").addEventListener("change", function () { S.chapterFilter = this.value; });
+    $("chatSend").addEventListener("click", sendChat);
+    $("chatInput").addEventListener("keydown", function (e) { if (e.key === "Enter") sendChat(); });
     $("btnStandup").addEventListener("click", () => { const t = ["atlas", "nova", "orion"]; startMeeting("standup", t[S.standupIdx++ % 3]); });
     $("btnCouncil").addEventListener("click", () => startMeeting("council"));
     window.addEventListener("resize", fit);
@@ -544,10 +605,10 @@
     if (!last) last = t; const dt = Math.min(0.05, (t - last) / 1000); last = t; S.time += dt;
     if (S.auto) {
       const dm = dt * S.speed * MIN_PER_SEC; S.simMin += dm;
-      if (S.simMin >= 23 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; S.nextChapter = 9 * 60 + 55; feed("— Day " + S.day + " begins —", "event"); }
+      if (S.simMin >= 23 * 60) { S.simMin = 9 * 60; S.day++; S.shippedToday = 0; S.lunchDone = false; S.nextStandup = 9 * 60 + 25; S.nextReview = 9 * 60 + 80; S.nextDecision = 9 * 60 + 140; S.nextChapter = 9 * 60 + 55; S.nextUpskill = 9 * 60 + 30; feed("— Day " + S.day + " begins —", "event"); }
       advance(dm); maybeConversation(dm); schedule(); updateMeetings(); updateTalks();
     }
-    moveTick(dt); render(); domTick(); requestAnimationFrame(loop);
+    moveTick(dt); deliverChat(dt); render(); domTick(); requestAnimationFrame(loop);
   }
 
   build(); wireControls();

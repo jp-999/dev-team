@@ -269,15 +269,28 @@ scripts/
 
 ## 8. Office view (local frontend)
 
-A zero-install visual of the team as a living office — **everyone on the work they're assigned**,
-with desks, two conference rooms, a war room (decision council), and a cafeteria. People show
-their current task + progress, talk within and across teams, and gather for stand-ups, reviews,
-and decisions. See [`office/`](office/).
+A zero-install, pixel-art view of the team as a living office — a real **walled floor plan** with
+per-team rooms (each a color-coded section with its own conference room), a shared **All-Hands**,
+and a **cafeteria** with appliances. Agents sit at desks with computers, **walk through doorways**
+to stand-ups / reviews / the decision council, show live **activity labels** + **ticket keys**,
+fly **desk-to-desk envelopes**, and the scene runs a **day↔night** cycle. See [`office/`](office/).
 
 ```bash
 cd office && python3 -m http.server 8011    # then open http://localhost:8011/
 # or simply open office/index.html directly
 ```
+
+**Instruct the team (chat).** The right panel has an *Instruct the team* box — pick a **person, a
+team, or everyone**, type an instruction, and send. Messages **queue** (a priority option jumps
+the line); on delivery an envelope flies to each recipient and the instruction becomes their
+**active task**, which they work to completion and report back in the activity feed.
+
+**Upskilling (L&D) — automatic every 12 hours.** A Researcher / Training Lead / HR / Compliance
+team runs on its own every 12 hours, finds an improvement, and **rolls it out to every squad**
+(watch the `L&D · N` counter tick). It runs for real too: an installed launchd job
+(`~/Library/LaunchAgents/com.devteam.upskill.plist`) runs `scripts/upskill.py` every 12 h — see
+[`workflow/upskilling.md`](workflow/upskilling.md). (Re-install on another machine by copying that
+plist from `scripts/` and `launchctl load`-ing it.)
 
 It's a local **simulation** today, structured to later bind to the real `.devteam/` blackboard.
 

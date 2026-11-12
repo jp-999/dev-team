@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- launchd job: run the Upskilling (L&D) cycle every 12 hours. Machine-specific paths.
+     Install:  cp scripts/com.devteam.upskill.plist ~/Library/LaunchAgents/
+               launchctl unload ~/Library/LaunchAgents/com.devteam.upskill.plist 2>/dev/null
+               launchctl load -w ~/Library/LaunchAgents/com.devteam.upskill.plist -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.devteam.upskill</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/python3.13</string>
+    <string>/Users/jayanth.peddi/dev team/scripts/upskill.py</string>
+  </array>
+  <key>StartInterval</key><integer>43200</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/jayanth.peddi/dev team/upskilling/launchd.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/jayanth.peddi/dev team/upskilling/launchd.err.log</string>
+</dict>
+</plist>

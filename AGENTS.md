@@ -32,6 +32,11 @@ pipeline in [`workflow/SOP.md`](workflow/SOP.md).
 | 6 | QA / Tester | `agents/qa.md` | Tests + acceptance verification |
 | 7 | DevOps / Integrator | `agents/integrator.md` | Build, integrate, release readiness |
 
+Plus an **Upskilling (L&D)** team — Researcher, Training Lead, People/HR, Compliance
+(`agents/researcher.md`, `trainer.md`, `hr.md`, `compliance.md`) — that runs **automatically every
+12 hours**, finds improvements, and rolls them out to every squad. See
+[`workflow/upskilling.md`](workflow/upskilling.md).
+
 ## Org model: squads × chapters
 
 The team is a **matrix**: **squads** (Atlas / Nova / Orion / Platform / Leadership) own delivery

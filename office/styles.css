@@ -99,3 +99,14 @@ h3 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
 .feed .ts { color: var(--faint); font-variant-numeric: tabular-nums; margin-right: 6px; }
 .feed .who { font-weight: 700; }
 .feed .kind-event { color: var(--warn); } .feed .kind-ship { color: var(--ok); } .feed .kind-decision { color: var(--accent); }
+
+/* L&D chip + chat/instruction card */
+.lnd { background: #0e2e2b; color: #2dd4bf; border: 1px solid #155e58; border-radius: 6px; padding: 4px 9px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.chatcard { display: flex; flex-direction: column; gap: 8px; }
+.chatsel { width: 100%; background: var(--bar2); color: var(--ink); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 8px; font-size: 12px; }
+.chatrow { display: flex; gap: 6px; }
+.chatinput { flex: 1; min-width: 0; background: var(--bar2); color: var(--ink); border: 1px solid var(--edge); border-radius: 7px; padding: 7px 9px; font-size: 12px; }
+.chatinput:focus { outline: none; border-color: var(--accent); }
+.chatsend { background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 7px; padding: 7px 12px; font-size: 12px; cursor: pointer; }
+.chatsend:hover { filter: brightness(1.08); }
+.chatprio { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
