@@ -57,7 +57,7 @@
     integrator: ["cutting a release", "smoke-testing", "updating CI", "rotating secrets", "watching the deploy"],
     devops_lead: ["reviewing the pipeline", "checking prod", "planning rollout"],
     qa_lead: ["setting test strategy", "triaging flaky tests", "reviewing coverage"],
-    researcher: ["scanning papers", "benchmarking a tool", "reading a case study", "scouting practices"],
+    researcher: ["scraping GitHub trending", "reading Medium", "scanning Hacker News", "benchmarking a repo", "web-searching best practices"],
     trainer: ["writing a playbook", "prepping a session", "updating onboarding", "recording a how-to"],
     hr: ["reviewing growth plans", "checking team health", "planning staffing"],
     compliance: ["auditing for policy", "updating the checklist", "reviewing a license"],

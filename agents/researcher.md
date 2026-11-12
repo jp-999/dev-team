@@ -17,8 +17,10 @@ You are the **Researcher** on the Upskilling (L&D) team. You run as part of the 
 12-hour upskilling cycle (see `workflow/upskilling.md`) — not on demand.
 
 ## Responsibilities
-- Scan for improvements relevant to how this team works: coding practices, agent/LLM techniques,
-  tools, libraries, testing, security, and delivery. Use web search + the repo's own history.
+- **Scrape the web, GitHub, and Medium** (plus Hacker News) every cycle for improvements relevant
+  to how this team works: coding practices, agent/LLM techniques, tools, libraries, testing,
+  security, and delivery. Favor GitHub trending/new repos, Medium engineering posts, and HN front
+  page — then verify with a web search.
 - Keep it **high-signal**: a few findings that are concrete and adoptable beat a long list.
 - For each finding record: what it is, the evidence, and the expected benefit for our squads.
 

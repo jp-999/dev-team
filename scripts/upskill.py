@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Automatic Upskilling (L&D) cycle — runs every 12 hours via launchd (not manual).
 
-Offline-safe and dependency-free: it records a research cycle and the one improvement adopted,
-appends to a rollout log, and leaves a per-cycle report. If you later wire it to the CrewAI
-engine or a web/LLM pass, keep this deterministic fallback so the schedule never fails.
+The Researcher scrapes the **web, GitHub, and Medium** (plus Hacker News) for improvements; the
+team adopts one and rolls it out to every squad. Network-robust and dependency-free (stdlib only):
+if the sources are unreachable it falls back to a static list, so the schedule never fails.
 
 Scheduled by ~/Library/LaunchAgents/com.devteam.upskill.plist (StartInterval 43200s = 12h).
 """
@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import datetime
 import json
+import re
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,13 +31,65 @@ IMPROVEMENTS = [
     "Incident runbook v2",
     "Dependency hygiene policy",
 ]
-FINDINGS = [
+FALLBACK = [
     "benchmarked a new framework (~18% faster builds)",
-    "found a better retrieval approach for agents",
-    "distilled 3 case studies into a playbook",
-    "audited the toolchain for security gaps",
-    "drafted a growth ladder for the squads",
+    "a better retrieval approach for agents",
+    "a case study distilled into a playbook",
+    "a toolchain security gap to close",
 ]
+
+
+def _get(url, headers=None, timeout=8):
+    try:
+        req = urllib.request.Request(url, headers=headers or {"User-Agent": "devteam-upskill/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read().decode("utf-8", "replace")
+    except Exception:
+        return None
+
+
+def scrape_github():
+    """Recently-created, most-starred repos (a proxy for GitHub trending)."""
+    since = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    q = urllib.parse.quote("created:>%s" % since)
+    url = "https://api.github.com/search/repositories?q=%s&sort=stars&order=desc&per_page=4" % q
+    txt = _get(url, {"User-Agent": "devteam-upskill/1.0", "Accept": "application/vnd.github+json"})
+    out = []
+    if txt:
+        try:
+            for it in json.loads(txt).get("items", [])[:3]:
+                desc = (it.get("description") or "trending repo").strip()
+                out.append("GitHub: %s — %s" % (it.get("full_name"), desc[:80]))
+        except Exception:
+            pass
+    return out
+
+
+def scrape_medium(tag="programming"):
+    """Latest posts from a Medium tag RSS feed."""
+    txt = _get("https://medium.com/feed/tag/%s" % tag, {"User-Agent": "Mozilla/5.0 devteam-upskill"})
+    out = []
+    if txt:
+        titles = re.findall(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", txt, re.S)
+        for t in titles[1:4]:  # skip the feed's own title
+            t = re.sub(r"<.*?>", "", t).strip()
+            if t:
+                out.append("Medium: %s" % t[:90])
+    return out
+
+
+def scrape_hn():
+    """Hacker News front page via the Algolia API."""
+    txt = _get("https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=6")
+    out = []
+    if txt:
+        try:
+            for h in json.loads(txt).get("hits", [])[:3]:
+                if h.get("title"):
+                    out.append("HN: %s" % h["title"][:90])
+        except Exception:
+            pass
+    return out
 
 
 def main():
@@ -45,28 +100,37 @@ def main():
         st = {"cycle": 0}
     st["cycle"] += 1
     n = st["cycle"]
+
+    findings = scrape_github() + scrape_medium() + scrape_hn()
+    scraped = bool(findings)
+    if not findings:
+        findings = ["(offline) " + f for f in FALLBACK]
+
     imp = IMPROVEMENTS[(n - 1) % len(IMPROVEMENTS)]
-    finding = FINDINGS[(n - 1) % len(FINDINGS)]
     now = datetime.datetime.now().isoformat(timespec="seconds")
 
-    (REPORTS / ("cycle-%03d.md" % n)).write_text(
-        "# Upskilling cycle %d — %s\n\n"
-        "- **Researcher** %s\n"
-        "- **Training Lead** wrote a playbook for \"%s\"\n"
-        "- **People / HR** checked team health and updated the growth ladder\n"
-        "- **Compliance** cleared security + licensing\n\n"
-        "**Improvement adopted org-wide:** %s\n" % (n, now, finding, imp, imp),
-        encoding="utf-8",
-    )
+    body = ["# Upskilling cycle %d — %s" % (n, now), ""]
+    body.append("**Researcher** scraped the web, GitHub, and Medium%s:" % ("" if scraped else " (offline fallback)"))
+    body += ["- " + f for f in findings]
+    body += [
+        "",
+        '**Training Lead** turned the best finding into a playbook for "%s".' % imp,
+        "**People / HR** checked team health and updated the growth ladder.",
+        "**Compliance** cleared security + licensing.",
+        "",
+        "**Improvement adopted org-wide:** %s" % imp,
+        "",
+    ]
+    (REPORTS / ("cycle-%03d.md" % n)).write_text("\n".join(body), encoding="utf-8")
 
     log = OUT / "log.md"
     with log.open("a", encoding="utf-8") as f:
         if n == 1:
             f.write("# Upskilling rollout log (automatic, every 12h)\n\n")
-        f.write("- %s · cycle %d · adopted: %s\n" % (now, n, imp))
+        f.write("- %s · cycle %d · %s · adopted: %s\n" % (now, n, "scraped" if scraped else "offline", imp))
 
     STATE.write_text(json.dumps(st, indent=2) + "\n", encoding="utf-8")
-    print("Upskilling cycle %d complete — adopted: %s" % (n, imp))
+    print("Upskilling cycle %d (%s) — %d findings — adopted: %s" % (n, "scraped" if scraped else "offline", len(findings), imp))
 
 
 if __name__ == "__main__":

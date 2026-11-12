@@ -53,11 +53,8 @@
         <div class="board" id="board"></div>
         <div class="chip" id="memChip">memory · minilm · hive online</div>
         <div class="legend" id="legend"></div>
-      </div>
-      <aside class="side">
-        <div class="card" id="inspector"></div>
-        <div class="card chatcard">
-          <div class="cardhead"><h3>Instruct the team</h3><span class="muted" id="queueCount"></span></div>
+        <div class="chatdock" id="chatdock">
+          <div class="chatdock-head">Instruct the team <span class="muted" id="queueCount"></span></div>
           <select id="chatTarget" class="chatsel"></select>
           <div class="chatrow">
             <input id="chatInput" class="chatinput" placeholder="Tell them what to build or fix…" />
@@ -65,6 +62,9 @@
           </div>
           <label class="chatprio"><input type="checkbox" id="chatPriority" /> priority · jump the queue</label>
         </div>
+      </div>
+      <aside class="side">
+        <div class="card" id="inspector"></div>
         <div class="card feedcard">
           <div class="cardhead"><h3>Activity feed</h3></div>
           <ul id="feed" class="feed"></ul>

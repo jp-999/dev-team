@@ -181,12 +181,12 @@ const UPSKILL_IMPROVEMENTS = [
   "Dependency hygiene policy",
 ];
 const UPSKILL_FINDINGS = [
-  "benchmarked a new framework — 18% faster builds",
-  "found a paper on better retrieval for agents",
-  "distilled 3 case studies into a playbook",
-  "audited the toolchain for security gaps",
-  "drafted a growth ladder for the squads",
-  "updated the compliance checklist",
+  "scraped GitHub trending — a faster test runner",
+  "a Medium post on better agent memory",
+  "Hacker News thread on cheaper evals",
+  "a new library trending on GitHub this week",
+  "a Medium write-up on CI caching",
+  "web search surfaced a security best-practice",
 ];
 
 const MEETINGS = [
