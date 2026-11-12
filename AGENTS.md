@@ -52,6 +52,10 @@ directory at the root of the project being built (templates in `workflow/blackbo
 `spec.md`, `tasks.yaml`, `architecture.md`, `design.md`, `implementation.md`, `review.md`,
 `qa-report.md`, `delivery.md`, `state.json`, `log.md`.
 
+Durable cross-run memory is an **[Obsidian](https://obsidian.md/)-structured vault** in `vault/`
+(`[[wikilinks]]` + `#tags` + a graph) — the team's *company brain*, grown automatically by the
+upskilling cycle. Open it in Obsidian, or run `python3 scripts/vault_graph.py`.
+
 The pipeline, phases, gates, and feedback loops are defined in
 [`workflow/SOP.md`](workflow/SOP.md). Read it before acting.
 

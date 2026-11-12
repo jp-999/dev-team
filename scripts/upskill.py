@@ -38,6 +38,51 @@ FALLBACK = [
     "a toolchain security gap to close",
 ]
 
+VAULT = ROOT / "vault"
+IMPROV = VAULT / "improvements"
+AREA = {
+    "TDD by default on risky logic": ("engineering", "Engineering"),
+    "Faster CI with cached builds": ("platform", "Platform"),
+    "Refreshed design tokens": ("design", "Design"),
+    "Tighter PR review checklist": ("quality", "Quality"),
+    "Shared prompt library for agents": ("engineering", "Engineering"),
+    "New accessibility baseline": ("design", "Design"),
+    "Incident runbook v2": ("platform", "Platform"),
+    "Dependency hygiene policy": ("quality", "Quality"),
+}
+
+
+def _slug(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
+def write_vault_note(n, imp, findings, scraped, now):
+    """Write the adopted improvement as an Obsidian note (wikilinks + tags) and refresh the graph."""
+    if not VAULT.is_dir():
+        return
+    IMPROV.mkdir(parents=True, exist_ok=True)
+    area_tag, chapter = AREA.get(imp, ("enablement", "Enablement"))
+    lines = [
+        "---",
+        "tags: [upskilling, %s]" % area_tag,
+        "cycle: %d" % n,
+        "date: %s" % now,
+        "---",
+        "# %s" % imp,
+        "",
+        "Adopted org-wide in **cycle %d**. Owned by the [[%s]] chapter. Part of [[Upskilling]]." % (n, chapter),
+        "",
+        "## Evidence%s" % ("" if scraped else " (offline fallback)"),
+    ]
+    lines += ["- " + f for f in findings]
+    lines += ["", "Related: [[Upskilling]] · [[Chapters]] · [[researcher]]", ""]
+    (IMPROV / ("%03d-%s.md" % (n, _slug(imp)))).write_text("\n".join(lines), encoding="utf-8")
+    try:
+        import runpy
+        runpy.run_path(str(ROOT / "scripts" / "vault_graph.py"), run_name="__main__")
+    except Exception:
+        pass
+
 
 def _get(url, headers=None, timeout=8):
     try:
@@ -130,6 +175,7 @@ def main():
         f.write("- %s · cycle %d · %s · adopted: %s\n" % (now, n, "scraped" if scraped else "offline", imp))
 
     STATE.write_text(json.dumps(st, indent=2) + "\n", encoding="utf-8")
+    write_vault_note(n, imp, findings, scraped, now)
     print("Upskilling cycle %d (%s) — %d findings — adopted: %s" % (n, "scraped" if scraped else "offline", len(findings), imp))
 
 

@@ -292,6 +292,12 @@ team runs on its own every 12 hours, finds an improvement, and **rolls it out to
 [`workflow/upskilling.md`](workflow/upskilling.md). (Re-install on another machine by copying that
 plist from `scripts/` and `launchctl load`-ing it.)
 
+**Knowledge vault (Obsidian).** The team's durable memory lives in `vault/` as an
+[Obsidian](https://obsidian.md/)-structured knowledge base — plain Markdown with `[[wikilinks]]`,
+`#tags`, backlinks, and a graph. Each 12-hour upskilling cycle adds a linked improvement note, so
+the *company brain* grows itself. Open `vault/` in Obsidian (*Open folder as vault*), or run
+`python3 scripts/vault_graph.py` for a no-Obsidian `Backlinks.md` + `graph.json`.
+
 It's a local **simulation** today, structured to later bind to the real `.devteam/` blackboard.
 
 ## 9. Skills & external tools

@@ -18,6 +18,12 @@ runs/
 # Upskilling (L&D) auto-cycle output (reports + rollout log)
 upskilling/
 
+# Obsidian knowledge vault — generated parts (the MOC seeds are committed)
+vault/improvements/
+vault/graph.json
+vault/Backlinks.md
+vault/.obsidian/
+
 # CrewAI local storage (memory / embeddings cache)
 crew/.crewai_storage/
 
